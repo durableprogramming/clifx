@@ -308,7 +308,7 @@ fn generate_random_saturated_color() -> String {
     let g = ((g_prime + m) * 255.0) as u8;
     let b = ((b_prime + m) * 255.0) as u8;
     
-    format!("{},{},{}", r, g, b)
+    format!("{r},{g},{b}")
 }
 
 fn parse_rgb_color(color_str: &str) -> Result<(u8, u8, u8), Box<dyn std::error::Error>> {

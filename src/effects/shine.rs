@@ -143,9 +143,7 @@ pub fn apply_shine_effect(text: &str, config: &ShineConfig) -> Result<(), Box<dy
                 if distance_from_shine <= shine_radius {
                     let shine_intensity = if config.blur {
                         1.0 - (distance_from_shine / shine_radius)
-                    } else {
-                        if distance_from_shine == 0.0 { 1.0 } else { 0.0 }
-                    };
+                    } else if distance_from_shine == 0.0 { 1.0 } else { 0.0 };
                     // Apply opacity to the shine intensity
                     let opacity_adjusted_intensity = shine_intensity * config.opacity;
                     let blended_color = blend_colors(base_color, shine_color, opacity_adjusted_intensity);

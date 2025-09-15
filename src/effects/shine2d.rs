@@ -137,9 +137,7 @@ fn calculate_2d_shine_intensity(pos: &Position2D, shine_line: f32, angle: f32, w
     if distance <= width {
         if blur {
             1.0 - (distance / width)
-        } else {
-            if distance <= 0.5 { 1.0 } else { 0.0 }
-        }
+        } else if distance <= 0.5 { 1.0 } else { 0.0 }
     } else {
         0.0
     }
