@@ -105,9 +105,21 @@ create_and_push_tag() {
     
     cd "$PROJECT_ROOT"
     
+    # Check if tag already exists
+    if git tag -l | grep -q "^$tag_name$"; then
+        log_error "Tag $tag_name already exists"
+        exit 1
+    fi
+    
     log_info "Adding changes to git"
     git add Cargo.toml Cargo.lock
-    git commit -m "Bump version to $version for release"
+    
+    # Only commit if there are changes to commit
+    if git diff --staged --quiet; then
+        log_warning "No changes to commit (version may already be current)"
+    else
+        git commit -m "Bump version to $version for release"
+    fi
     
     log_info "Creating git tag: $tag_name"
     git tag -a "$tag_name" -m "Release version $tag_name"
