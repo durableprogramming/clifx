@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/packages/
-  packages = with pkgs; [ git libyaml openssl ];
+  packages = with pkgs; [ git libyaml openssl glibc.static zlib.static];
 
   languages.rust.enable = true;
 
