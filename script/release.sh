@@ -94,7 +94,9 @@ run_tests() {
     cd "$PROJECT_ROOT"
     cargo test --all-features
     cargo clippy --all-targets --all-features -- -D warnings
-    cargo build --release
+
+
+    cargo build --release --all-targets
     
     log_success "All tests passed"
 }

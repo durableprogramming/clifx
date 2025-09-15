@@ -81,12 +81,14 @@ get_version() {
 build_deb_if_needed() {
     local version=$(get_version)
     local arch=$(get_arch)
-    local deb_name="clifx_${version}_${arch}.deb"
-    local deb_path="$PROJECT_ROOT/target/debian/$deb_name"
+    local target="x86_64-unknown-linux-gnu"
     
-    if [[ -f "$deb_path" ]]; then
-        log_info "Debian package already exists: $deb_path"
-        echo "$deb_path"
+    # Find existing deb file with version pattern
+    local existing_deb=$(find "$PROJECT_ROOT/target/*/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)
+    
+    if [[ -n "$existing_deb" && -f "$existing_deb" ]]; then
+        log_info "Debian package already exists: $existing_deb" >&2
+        echo "$existing_deb"
         return 0
     fi
     
@@ -99,16 +101,22 @@ build_deb_if_needed() {
         cargo install cargo-deb
     fi
     
+
     # Build the deb package
-    cargo deb --no-strip >&2
+    #
+
+    RUSTFLAGS="-C target-feature=+crt-static" cargo deb --no-strip --target $target   >&2
     
-    if [[ ! -f "$deb_path" ]]; then
+    # Find the newly created deb file
+    local deb_path=$(find "$PROJECT_ROOT/target/${target}/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)
+    
+    if [[ -z "$deb_path" || ! -f "$deb_path" ]]; then
         log_error "Failed to build Debian package" >&2
         exit 1
     fi
     
     log_success "Built Debian package: $deb_path" >&2
-    echo "$deb_path"
+    echo "$deb_path" | head -1
 }
 
 create_dockerfile() {

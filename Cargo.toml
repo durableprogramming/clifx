@@ -25,7 +25,7 @@ extended-description = """\
 A visual command line effects and animation library for creating 
 engaging terminal experiences. Clifx provides various visual effects 
 and animations to enhance CLI applications."""
-depends = "$auto"
+depends = ""
 section = "utils"
 priority = "optional"
 assets = [
