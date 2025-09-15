@@ -95,8 +95,8 @@ run_tests() {
     cargo test --all-features
     cargo clippy --all-targets --all-features -- -D warnings
 
-
-    cargo check 
+    cargo check --target=x86_64-unknown-linux-gnu
+    cargo check --target=x86_64-unknown-linux-musl
     
     log_success "All tests passed"
 }
