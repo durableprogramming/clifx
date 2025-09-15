@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 # Configuration
 REPO_OWNER="durableprogramming"
 REPO_NAME="clifx"
-INSTALL_DIR="~/.local/bin"
+INSTALL_DIR=$(readlink -f ~/.local/bin/)
 TEMP_DIR=$(mktemp -d)
 
 # Cleanup on exit
