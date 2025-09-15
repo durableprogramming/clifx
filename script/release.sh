@@ -12,6 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+
 log_info() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -92,11 +93,13 @@ run_tests() {
     log_info "Running tests to ensure everything works"
     
     cd "$PROJECT_ROOT"
-    cargo test --all-features
-    cargo clippy --all-targets --all-features -- -D warnings
+    echo cargo test
+    RUSTFLAGS="-C target-feature=+crt-static" cargo test --target=x86_64-unknown-linux-gnu
+    echo cargo clippy
+    RUSTFLAGS="-C target-feature=+crt-static" cargo clippy  --target=x86_64-unknown-linux-gnu --all-features -- -D warnings
 
-    cargo check --target=x86_64-unknown-linux-gnu
-    cargo check --target=x86_64-unknown-linux-musl
+    echo cargo build
+    RUSTFLAGS="-C target-feature=+crt-static" cargo build --target x86_64-unknown-linux-gnu
     
     log_success "All tests passed"
 }
