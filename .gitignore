@@ -13,3 +13,4 @@ devenv.local.nix
 
 /target
 *.bak
+devenv.lock
