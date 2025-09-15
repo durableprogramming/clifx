@@ -1,0 +1,38 @@
+[package]
+name = "clifx"
+version = "0.1.0"
+edition = "2021"
+authors = ["Durable Programming, LLC"]
+license = "MIT"
+description = "A visual command line effects and animation library"
+readme = "README.md"
+homepage = "https://github.com/durableprogramming/clifx"
+repository = "https://github.com/durableprogramming/clifx"
+keywords = ["cli", "effects", "animation", "terminal", "visual"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+termcolor = "1.4"
+crossterm = "0.27"
+rand = "0.8"
+
+[package.metadata.deb]
+maintainer = "Durable Programming, LLC"
+copyright = "2024, Durable Programming, LLC"
+license-file = ["LICENSE.md", "4"]
+extended-description = """\
+A visual command line effects and animation library for creating 
+engaging terminal experiences. Clifx provides various visual effects 
+and animations to enhance CLI applications."""
+depends = "$auto"
+section = "utils"
+priority = "optional"
+assets = [
+    ["target/release/clifx", "usr/bin/", "755"],
+    ["README.md", "usr/share/doc/clifx/README", "644"],
+]
+
+[[bin]]
+name = "clifx"
+path = "src/main.rs"
