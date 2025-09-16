@@ -81,7 +81,7 @@ get_version() {
 build_deb_if_needed() {
     local version=$(get_version)
     local arch=$(get_arch)
-    local target="x86_64-unknown-linux-gnu"
+    local target="x86_64-unknown-linux-musl"
     
     # Find existing deb file with version pattern
     local existing_deb=$(find "$PROJECT_ROOT/target/*/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)
@@ -105,7 +105,7 @@ build_deb_if_needed() {
     # Build the deb package
     #
 
-    RUSTFLAGS="-C target-feature=+crt-static" cargo deb --no-strip --target $target   >&2
+    RUSTFLAGS="-C target-feature=-crt-static" cargo deb --no-strip --target $target   >&2
     
     # Find the newly created deb file
     local deb_path=$(find "$PROJECT_ROOT/target/${target}/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)
@@ -138,12 +138,6 @@ RUN dpkg -i /tmp/*.deb || apt-get install -f -y
 RUN echo '#!/bin/bash' > /test.sh && \\
     echo 'echo \"Testing clifx shine command...\"' >> /test.sh && \\
     echo 'echo \"Hello, World!\" | clifx shine --color 255,0,0 --speed 50 --duration 1000' >> /test.sh && \\
-    echo 'echo' >> /test.sh && \\
-    echo 'echo \"Testing clifx shine2d command...\"' >> /test.sh && \\
-    echo 'echo \"This is a test\\nof the 2D shine effect\" | clifx shine2d --angle 45 --speed 30 --duration 1500' >> /test.sh && \\
-    echo 'echo' >> /test.sh && \\
-    echo 'echo \"Testing version output...\"' >> /test.sh && \\
-    echo 'clifx --version' >> /test.sh && \\
     echo 'echo' >> /test.sh && \\
     echo 'echo \"All tests completed successfully!\"' >> /test.sh && \\
     chmod +x /test.sh

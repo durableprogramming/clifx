@@ -1,6 +1,6 @@
 [package]
 name = "clifx"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["Durable Programming, LLC"]
 license = "MIT"
@@ -10,6 +10,7 @@ homepage = "https://github.com/durableprogramming/clifx"
 repository = "https://github.com/durableprogramming/clifx"
 keywords = ["cli", "effects", "animation", "terminal", "visual"]
 categories = ["command-line-utilities", "development-tools"]
+linker = "zig cc"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }

@@ -94,12 +94,12 @@ run_tests() {
     
     cd "$PROJECT_ROOT"
     echo cargo test
-    RUSTFLAGS="-C target-feature=+crt-static" cargo test --target=x86_64-unknown-linux-gnu
+    RUSTFLAGS="-C target-feature=+crt-static" cargo zigbuild test --target=x86_64-unknown-linux-gnu
     echo cargo clippy
     RUSTFLAGS="-C target-feature=+crt-static" cargo clippy  --target=x86_64-unknown-linux-gnu --all-features -- -D warnings
 
     echo cargo build
-    RUSTFLAGS="-C target-feature=+crt-static" cargo build --target x86_64-unknown-linux-gnu
+    RUSTFLAGS="-C target-feature=+crt-static" cargo zigbuild --target x86_64-unknown-linux-gnu
     
     log_success "All tests passed"
 }

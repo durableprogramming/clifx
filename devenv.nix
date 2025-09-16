@@ -2,14 +2,30 @@
 
 {
   # https://devenv.sh/packages/
-  packages = with pkgs; [ git libyaml openssl glibc.static zlib.static glibc];
+  packages = with pkgs; [ git libyaml openssl glibc.static zlib.static glibc cargo-zigbuild cmake
+    libclang
+    pkg-config
+  ];
 
-  languages.rust.enable = true;
+  languages.rust = {
+    enable = true;
+    channel = "nightly";
+    targets = [
+      "x86_64-unknown-linux-gnu"
+      "x86_64-unknown-linux-musl"
+      "aarch64-unknown-linux-gnu"
+      "aarch64-unknown-linux-musl"
+      "x86_64-pc-windows-gnu"
+      "aarch64-pc-windows-msvc"
+      "x86_64-apple-darwin"
+      "aarch64-apple-darwin"
+    ];
+  };
+  languages.zig.enable = true;
 
 
   enterShell = ''
 
-    export RUSTFLAGS="-C target-feature=-crt-static"
   '';
 
 }
