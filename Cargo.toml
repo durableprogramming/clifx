@@ -17,6 +17,9 @@ termcolor = "1.4"
 crossterm = "0.27"
 rand = "0.8"
 
+[dev-dependencies]
+assert_approx_eq = "1.1"
+
 [package.metadata.deb]
 maintainer = "Durable Programming, LLC"
 copyright = "2024, Durable Programming, LLC"

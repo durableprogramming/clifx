@@ -5,6 +5,7 @@ use std::io::{self, BufRead, BufReader};
 mod effects;
 use effects::shine::{apply_shine_effect, EasingFunction, ShineConfig, ShineStart};
 use effects::shine2d::{apply_shine2d_effect, Shine2DConfig};
+use effects::twinkle::{apply_twinkle_effect, TwinkleConfig, EasingFunction as TwinkleEasingFunction};
 
 #[derive(Parser)]
 #[command(name = "clifx")]
@@ -170,6 +171,52 @@ enum Commands {
         #[arg(long)]
         terminal_width: Option<usize>,
     },
+    /// Apply twinkle effect to stdin (animates periods with twinkling stars)
+    Twinkle {
+        /// Base color as RGB values (e.g., "255,255,255" for white)
+        #[arg(long, default_value = "255,255,255")]
+        base_color: String,
+
+        /// Twinkle color as RGB values (e.g., "255,255,0" for yellow)
+        #[arg(long, default_value = "255,255,0")]
+        twinkle_color: String,
+
+        /// Animation speed in milliseconds between frames
+        #[arg(long, default_value = "100")]
+        speed: u64,
+
+        /// Easing function for the twinkle animation
+        #[arg(long, value_enum, default_value = "linear")]
+        easing: EasingType,
+
+        /// Duration of one complete cycle in milliseconds
+        #[arg(long, default_value = "3000")]
+        duration: u64,
+
+        /// Number of complete cycles (0 for infinite)
+        #[arg(long, default_value = "1")]
+        cycles: u32,
+
+        /// Ratio of periods to twinkle simultaneously (0.0 to 1.0)
+        #[arg(long, default_value = "0.3")]
+        twinkle_ratio: f32,
+
+        /// Minimum number of periods to twinkle at once
+        #[arg(long)]
+        min_twinkle_count: Option<usize>,
+
+        /// Maximum number of periods to twinkle at once  
+        #[arg(long)]
+        max_twinkle_count: Option<usize>,
+
+        /// Percentage of time twinkling should be active (0.0 to 1.0)
+        #[arg(long, default_value = "0.8")]
+        twinkling_percentage: f32,
+
+        /// Enable star mode using star characters instead of dots
+        #[arg(long)]
+        star_mode: bool,
+    },
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -312,6 +359,51 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             apply_shine2d_effect(&input_text, &config)?;
         }
+        Commands::Twinkle {
+            base_color,
+            twinkle_color,
+            speed,
+            easing,
+            duration,
+            cycles,
+            twinkle_ratio,
+            min_twinkle_count,
+            max_twinkle_count,
+            twinkling_percentage,
+            star_mode,
+        } => {
+            let base_rgb = parse_rgb_color(&base_color)?;
+            let twinkle_rgb = parse_rgb_color(&twinkle_color)?;
+
+            let easing_func = match easing {
+                EasingType::Linear => TwinkleEasingFunction::Linear,
+                EasingType::EaseIn => TwinkleEasingFunction::EaseIn,
+                EasingType::EaseOut => TwinkleEasingFunction::EaseOut,
+                EasingType::EaseInOut => TwinkleEasingFunction::EaseInOut,
+            };
+
+            let config = TwinkleConfig {
+                base_color: base_rgb,
+                twinkle_color: twinkle_rgb,
+                speed,
+                easing: easing_func,
+                duration,
+                cycles,
+                twinkle_ratio: Some(twinkle_ratio.clamp(0.0, 1.0)),
+                min_twinkle_count,
+                max_twinkle_count,
+                twinkling_percentage: twinkling_percentage.clamp(0.0, 1.0),
+                star_mode,
+            };
+
+            let stdin = io::stdin();
+            let reader = BufReader::new(stdin.lock());
+
+            for line in reader.lines() {
+                let line = line?;
+                apply_twinkle_effect(&line, &config)?;
+            }
+        }
     }
 
     Ok(())
@@ -360,4 +452,62 @@ fn parse_rgb_color(color_str: &str) -> Result<(u8, u8, u8), Box<dyn std::error::
     let b = parts[2].trim().parse::<u8>()?;
 
     Ok((r, g, b))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_rgb_color_valid() {
+        assert_eq!(parse_rgb_color("255,0,0").unwrap(), (255, 0, 0));
+        assert_eq!(parse_rgb_color("0,255,0").unwrap(), (0, 255, 0));
+        assert_eq!(parse_rgb_color("0,0,255").unwrap(), (0, 0, 255));
+        assert_eq!(parse_rgb_color("128,128,128").unwrap(), (128, 128, 128));
+    }
+
+    #[test]
+    fn test_parse_rgb_color_with_whitespace() {
+        assert_eq!(parse_rgb_color(" 255 , 0 , 0 ").unwrap(), (255, 0, 0));
+        assert_eq!(parse_rgb_color("255, 128, 64").unwrap(), (255, 128, 64));
+    }
+
+    #[test]
+    fn test_parse_rgb_color_invalid_format() {
+        assert!(parse_rgb_color("255,0").is_err());
+        assert!(parse_rgb_color("255,0,0,255").is_err());
+        assert!(parse_rgb_color("255").is_err());
+        assert!(parse_rgb_color("").is_err());
+    }
+
+    #[test]
+    fn test_parse_rgb_color_invalid_values() {
+        assert!(parse_rgb_color("256,0,0").is_err());
+        assert!(parse_rgb_color("-1,0,0").is_err());
+        assert!(parse_rgb_color("abc,0,0").is_err());
+        assert!(parse_rgb_color("255,256,0").is_err());
+    }
+
+    #[test]
+    fn test_generate_random_saturated_color_format() {
+        let color = generate_random_saturated_color();
+        let rgb = parse_rgb_color(&color).unwrap();
+        
+        // Check that at least one component is 255 (fully saturated)
+        assert!(rgb.0 == 255 || rgb.1 == 255 || rgb.2 == 255);
+        
+        // Check format is valid
+        assert!(color.contains(','));
+        assert_eq!(color.split(',').count(), 3);
+    }
+
+    #[test]
+    fn test_generate_random_saturated_color_different_values() {
+        // Generate multiple colors to ensure randomness
+        let colors: Vec<String> = (0..10).map(|_| generate_random_saturated_color()).collect();
+        
+        // Ensure we get different values (very unlikely to get 10 identical random colors)
+        let unique_colors: std::collections::HashSet<_> = colors.iter().collect();
+        assert!(unique_colors.len() > 1, "Generated colors should vary: {:?}", colors);
+    }
 }
