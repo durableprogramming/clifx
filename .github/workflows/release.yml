@@ -62,11 +62,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Zig and cargo-zigbuild
-        run: |
-          curl -L https://ziglang.org/builds/zig-linux-x86_64-0.13.0.tar.xz | tar -xJ
-          sudo mv zig-linux-x86_64-0.13.0/zig /usr/local/bin/
-          sudo mv zig-linux-x86_64-0.13.0/lib /usr/local/lib/zig
-          cargo install cargo-zigbuild
+        uses: mlugg/setup-zig@v1
+
 
       - name: Install cargo-deb
         run: cargo install cargo-deb
