@@ -62,7 +62,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Zig and cargo-zigbuild
-        uses: mlugg/setup-zig@v1
+        uses: mlugg/setup-zig@v2
 
 
       - name: Install cargo-deb
