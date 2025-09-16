@@ -92,7 +92,7 @@ jobs:
       - name: Build binary
         run: |
           export RUSTFLAGS="-C target-feature=+crt-static" 
-          cargo build --release --target ${{ matrix.target }}
+          cargo zigbuild --release --target ${{ matrix.target }}
 
       - name: Create tar.gz archive
         run: |

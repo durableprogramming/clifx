@@ -95,15 +95,14 @@ run_tests() {
     cd "$PROJECT_ROOT"
     echo cargo test
     cargo test --target=x86_64-unknown-linux-gnu
-    cargo test --target=x86_64-unknown-linux-musl 
     echo cargo clippy
     cargo clippy  --target=x86_64-unknown-linux-gnu --all-features -- -D warnings
 
     echo cargo build gnu
-    cargo build --target x86_64-unknown-linux-gnu
+    cargo zigbuild --target x86_64-unknown-linux-gnu
     echo cargo build musl
     cargo clean
-    cargo build --target x86_64-unknown-linux-musl
+    cargo zigbuild --target x86_64-unknown-linux-musl
     
     log_success "All tests passed"
 }

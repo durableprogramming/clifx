@@ -2,7 +2,7 @@
 
 {
   # https://devenv.sh/packages/
-  packages = with pkgs; [ git libyaml openssl glibc.static zlib.static glibc cargo-zigbuild cmake
+  packages = with pkgs; [ git libyaml openssl zlib.static glibc glibc.static cargo-zigbuild cmake libgcc
     libclang
     pkg-config
   ];
@@ -26,7 +26,6 @@
 
   enterShell = ''
 
-    export RUSTFLAGS="-C target-feature=-crt-static"
   '';
 
 }
