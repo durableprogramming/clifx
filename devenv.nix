@@ -26,6 +26,7 @@
 
   enterShell = ''
 
+    export RUSTFLAGS="-C target-feature=-crt-static"
   '';
 
 }

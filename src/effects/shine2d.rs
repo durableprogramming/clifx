@@ -333,7 +333,7 @@ mod tests {
     #[test]
     fn test_shine2d_config_default() {
         let config = Shine2DConfig::default();
-        
+
         assert_eq!(config.base_color, (255, 255, 255));
         assert_eq!(config.speed, 50);
         assert_eq!(config.duration, 2000);
@@ -352,7 +352,7 @@ mod tests {
     fn test_wrap_text_to_grid_basic() {
         let text = "Hello World";
         let grid = wrap_text_to_grid(text, 5);
-        
+
         assert_eq!(grid.len(), 3);
         assert_eq!(grid[0], vec!['H', 'e', 'l', 'l', 'o']);
         assert_eq!(grid[1], vec![' ', 'W', 'o', 'r', 'l']);
@@ -363,7 +363,7 @@ mod tests {
     fn test_wrap_text_to_grid_with_newlines() {
         let text = "Hello\nWorld";
         let grid = wrap_text_to_grid(text, 10);
-        
+
         assert_eq!(grid.len(), 2);
         assert_eq!(grid[0], vec!['H', 'e', 'l', 'l', 'o']);
         assert_eq!(grid[1], vec!['W', 'o', 'r', 'l', 'd']);
@@ -373,7 +373,7 @@ mod tests {
     fn test_wrap_text_to_grid_empty() {
         let text = "";
         let grid = wrap_text_to_grid(text, 10);
-        
+
         assert_eq!(grid.len(), 0);
     }
 
@@ -381,7 +381,7 @@ mod tests {
     fn test_wrap_text_to_grid_exact_width() {
         let text = "12345";
         let grid = wrap_text_to_grid(text, 5);
-        
+
         assert_eq!(grid.len(), 1);
         assert_eq!(grid[0], vec!['1', '2', '3', '4', '5']);
     }
@@ -392,12 +392,18 @@ mod tests {
         let shine_line = 5.0;
         let angle = 90.0; // Vertical
         let width = 2.0;
-        
+
         // Should be at full intensity (distance = 0)
-        assert_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, false), 1.0);
-        
+        assert_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, false),
+            1.0
+        );
+
         // Test with blur
-        assert_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, true), 1.0);
+        assert_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, true),
+            1.0
+        );
     }
 
     #[test]
@@ -406,9 +412,12 @@ mod tests {
         let shine_line = 5.0;
         let angle = 0.0; // Horizontal
         let width = 2.0;
-        
+
         // Should be at full intensity (distance = 0)
-        assert_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, false), 1.0);
+        assert_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, false),
+            1.0
+        );
     }
 
     #[test]
@@ -417,10 +426,16 @@ mod tests {
         let shine_line = 5.0;
         let angle = 90.0; // Vertical
         let width = 2.0;
-        
+
         // Position x=10 is 5 units away from shine_line=5, which is > width=2
-        assert_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, false), 0.0);
-        assert_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, true), 0.0);
+        assert_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, false),
+            0.0
+        );
+        assert_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, true),
+            0.0
+        );
     }
 
     #[test]
@@ -429,13 +444,20 @@ mod tests {
         let shine_line = 5.0;
         let angle = 90.0; // Vertical
         let width = 2.0;
-        
+
         // Distance = 1, within width = 2
         // With blur: intensity = 1.0 - (1.0 / 2.0) = 0.5
-        assert_approx_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, true), 0.5, TEST_TOLERANCE);
-        
+        assert_approx_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, true),
+            0.5,
+            TEST_TOLERANCE
+        );
+
         // Without blur: distance > 0.5, so intensity = 0
-        assert_eq!(calculate_2d_shine_intensity(&pos, shine_line, angle, width, false), 0.0);
+        assert_eq!(
+            calculate_2d_shine_intensity(&pos, shine_line, angle, width, false),
+            0.0
+        );
     }
 
     #[test]
@@ -444,7 +466,7 @@ mod tests {
         let shine_line = 0.0;
         let angle = 45.0; // Diagonal
         let width = 1.0;
-        
+
         // At the exact line, should be full intensity
         let intensity = calculate_2d_shine_intensity(&pos, shine_line, angle, width, false);
         assert!(intensity > 0.0);
@@ -453,7 +475,7 @@ mod tests {
     #[test]
     fn test_easing_function_shine2d_linear() {
         let easing = EasingFunction::Linear;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.25), 0.25, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
@@ -464,11 +486,11 @@ mod tests {
     #[test]
     fn test_easing_function_shine2d_ease_in() {
         let easing = EasingFunction::EaseIn;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.25, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-in should start slow and accelerate
         assert!(easing.apply(0.1) < 0.1);
         assert!(easing.apply(0.9) > 0.8);

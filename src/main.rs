@@ -5,7 +5,9 @@ use std::io::{self, BufRead, BufReader};
 mod effects;
 use effects::shine::{apply_shine_effect, EasingFunction, ShineConfig, ShineStart};
 use effects::shine2d::{apply_shine2d_effect, Shine2DConfig};
-use effects::twinkle::{apply_twinkle_effect, TwinkleConfig, EasingFunction as TwinkleEasingFunction};
+use effects::twinkle::{
+    apply_twinkle_effect, EasingFunction as TwinkleEasingFunction, TwinkleConfig,
+};
 
 #[derive(Parser)]
 #[command(name = "clifx")]
@@ -492,10 +494,10 @@ mod tests {
     fn test_generate_random_saturated_color_format() {
         let color = generate_random_saturated_color();
         let rgb = parse_rgb_color(&color).unwrap();
-        
+
         // Check that at least one component is 255 (fully saturated)
         assert!(rgb.0 == 255 || rgb.1 == 255 || rgb.2 == 255);
-        
+
         // Check format is valid
         assert!(color.contains(','));
         assert_eq!(color.split(',').count(), 3);
@@ -505,9 +507,13 @@ mod tests {
     fn test_generate_random_saturated_color_different_values() {
         // Generate multiple colors to ensure randomness
         let colors: Vec<String> = (0..10).map(|_| generate_random_saturated_color()).collect();
-        
+
         // Ensure we get different values (very unlikely to get 10 identical random colors)
         let unique_colors: std::collections::HashSet<_> = colors.iter().collect();
-        assert!(unique_colors.len() > 1, "Generated colors should vary: {:?}", colors);
+        assert!(
+            unique_colors.len() > 1,
+            "Generated colors should vary: {:?}",
+            colors
+        );
     }
 }

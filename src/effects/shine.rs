@@ -229,7 +229,7 @@ mod tests {
     #[test]
     fn test_easing_function_linear() {
         let easing = EasingFunction::Linear;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.25), 0.25, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
@@ -240,11 +240,11 @@ mod tests {
     #[test]
     fn test_easing_function_ease_in() {
         let easing = EasingFunction::EaseIn;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.25, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-in should start slow and accelerate
         assert!(easing.apply(0.1) < 0.1);
         assert!(easing.apply(0.9) > 0.8);
@@ -253,11 +253,11 @@ mod tests {
     #[test]
     fn test_easing_function_ease_out() {
         let easing = EasingFunction::EaseOut;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.75, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-out should start fast and decelerate
         assert!(easing.apply(0.1) > 0.1);
         assert!(easing.apply(0.9) < 1.0);
@@ -266,11 +266,11 @@ mod tests {
     #[test]
     fn test_easing_function_ease_in_out() {
         let easing = EasingFunction::EaseInOut;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-in-out should be symmetric around 0.5
         let val_25 = easing.apply(0.25);
         let val_75 = easing.apply(0.75);
@@ -285,27 +285,40 @@ mod tests {
             EasingFunction::EaseOut,
             EasingFunction::EaseInOut,
         ];
-        
+
         for easing in functions {
             // Test edge cases
             assert_eq!(easing.apply(0.0), 0.0);
             assert_eq!(easing.apply(1.0), 1.0);
-            
+
             // Test monotonic increasing property
             let values: Vec<f32> = (0..=10).map(|i| easing.apply(i as f32 / 10.0)).collect();
             for i in 1..values.len() {
-                assert!(values[i] >= values[i-1], 
-                       "Easing function should be monotonic increasing. {:?} at step {}: {} >= {}", 
-                       easing, i, values[i], values[i-1]);
+                assert!(
+                    values[i] >= values[i - 1],
+                    "Easing function should be monotonic increasing. {:?} at step {}: {} >= {}",
+                    easing,
+                    i,
+                    values[i],
+                    values[i - 1]
+                );
             }
         }
     }
 
     #[test]
     fn test_blend_colors_basic() {
-        let base = Color::Rgb { r: 100, g: 100, b: 100 };
-        let shine = Color::Rgb { r: 200, g: 200, b: 200 };
-        
+        let base = Color::Rgb {
+            r: 100,
+            g: 100,
+            b: 100,
+        };
+        let shine = Color::Rgb {
+            r: 200,
+            g: 200,
+            b: 200,
+        };
+
         // Test no blending (intensity = 0.0)
         if let Color::Rgb { r, g, b } = blend_colors(base, shine, 0.0) {
             assert_eq!(r, 100);
@@ -314,7 +327,7 @@ mod tests {
         } else {
             panic!("Expected RGB color");
         }
-        
+
         // Test full blending (intensity = 1.0)
         if let Color::Rgb { r, g, b } = blend_colors(base, shine, 1.0) {
             assert_eq!(r, 200);
@@ -328,8 +341,12 @@ mod tests {
     #[test]
     fn test_blend_colors_midpoint() {
         let base = Color::Rgb { r: 0, g: 0, b: 0 };
-        let shine = Color::Rgb { r: 255, g: 255, b: 255 };
-        
+        let shine = Color::Rgb {
+            r: 255,
+            g: 255,
+            b: 255,
+        };
+
         if let Color::Rgb { r, g, b } = blend_colors(base, shine, 0.5) {
             assert_eq!(r, 127);
             assert_eq!(g, 127);
@@ -341,13 +358,21 @@ mod tests {
 
     #[test]
     fn test_blend_colors_clamping() {
-        let base = Color::Rgb { r: 100, g: 100, b: 100 };
-        let shine = Color::Rgb { r: 200, g: 200, b: 200 };
-        
+        let base = Color::Rgb {
+            r: 100,
+            g: 100,
+            b: 100,
+        };
+        let shine = Color::Rgb {
+            r: 200,
+            g: 200,
+            b: 200,
+        };
+
         // Test values outside valid range
         let result_negative = blend_colors(base, shine, -0.5);
         let result_over_one = blend_colors(base, shine, 1.5);
-        
+
         // Should clamp to valid range
         if let Color::Rgb { r, g, b } = result_negative {
             assert_eq!(r, 100); // Should be same as base (intensity = 0.0)
@@ -356,7 +381,7 @@ mod tests {
         } else {
             panic!("Expected RGB color");
         }
-        
+
         if let Color::Rgb { r, g, b } = result_over_one {
             assert_eq!(r, 200); // Should be same as shine (intensity = 1.0)
             assert_eq!(g, 200);
@@ -386,7 +411,7 @@ mod tests {
             cycle_switchback_delay: None,
             opacity: 1.0,
         };
-        
+
         assert_eq!(config.base_color, (255, 0, 0));
         assert_eq!(config.speed, 100);
         assert_eq!(config.duration, 1000);

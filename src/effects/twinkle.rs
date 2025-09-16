@@ -76,17 +76,21 @@ struct TwinkleState {
 const TWINKLE_CHARS: &[char] = &['.', '·', '•', '⋅', '∘', '○', '●'];
 const TWINKLE_CHARS_STAR: &[char] = &['.', '✦', '✧', '⋆', '✩', '✪', '✫', '⭐', '*'];
 
-fn calculate_three_phase_progress(phase: f32, pause_duration_ratio: f32, easing: &EasingFunction) -> f32 {
+fn calculate_three_phase_progress(
+    phase: f32,
+    pause_duration_ratio: f32,
+    easing: &EasingFunction,
+) -> f32 {
     let phase = phase.clamp(0.0, 1.0);
-    
+
     // Total animation divided into three parts:
     // - ease_up_duration: from 0 to max intensity
-    // - pause_duration: stay at max intensity  
+    // - pause_duration: stay at max intensity
     // - ease_down_duration: from max intensity back to 0
     let ease_duration = (1.0 - pause_duration_ratio) / 2.0; // Split remaining time equally for ease up and down
     let ease_up_end = ease_duration;
     let pause_end = ease_up_end + pause_duration_ratio;
-    
+
     if phase <= ease_up_end {
         // Ease up phase
         let local_progress = phase / ease_duration;
@@ -104,7 +108,11 @@ fn calculate_three_phase_progress(phase: f32, pause_duration_ratio: f32, easing:
 
 fn get_twinkle_char(progress: f32, star_mode: bool) -> char {
     let eased_progress = progress.clamp(0.0, 1.0);
-    let chars = if star_mode { TWINKLE_CHARS_STAR } else { TWINKLE_CHARS };
+    let chars = if star_mode {
+        TWINKLE_CHARS_STAR
+    } else {
+        TWINKLE_CHARS
+    };
     let index = (eased_progress * (chars.len() - 1) as f32).round() as usize;
     chars[index.min(chars.len() - 1)]
 }
@@ -160,7 +168,12 @@ pub fn apply_twinkle_effect(
             g: config.base_color.1,
             b: config.base_color.2,
         };
-        execute!(stdout, SetForegroundColor(base_color), Print(text), ResetColor)?;
+        execute!(
+            stdout,
+            SetForegroundColor(base_color),
+            Print(text),
+            ResetColor
+        )?;
         println!();
         return Ok(());
     }
@@ -201,7 +214,9 @@ pub fn apply_twinkle_effect(
 
             if should_twinkle {
                 // Calculate how many periods should be twinkling
-                let twinkle_count = if let (Some(min), Some(max)) = (config.min_twinkle_count, config.max_twinkle_count) {
+                let twinkle_count = if let (Some(min), Some(max)) =
+                    (config.min_twinkle_count, config.max_twinkle_count)
+                {
                     rng.gen_range(min..=max.min(period_positions.len()))
                 } else if let Some(ratio) = config.twinkle_ratio {
                     ((period_positions.len() as f32 * ratio).round() as usize).max(1)
@@ -231,14 +246,18 @@ pub fn apply_twinkle_effect(
                     let new_twinkles_needed = twinkle_count - current_twinkles;
                     for _ in 0..new_twinkles_needed {
                         if !available_positions.is_empty() {
-                            let pos = available_positions[rng.gen_range(0..available_positions.len())];
+                            let pos =
+                                available_positions[rng.gen_range(0..available_positions.len())];
                             let duration = rng.gen_range(20.0..60.0); // Random duration between 20-60 frames
                             let pause_duration = rng.gen_range(0.1..0.2); // 10-20% of total duration as pause
-                            twinkle_states.insert(pos, TwinkleState {
-                                phase: 0.0,
-                                duration,
-                                pause_duration,
-                            });
+                            twinkle_states.insert(
+                                pos,
+                                TwinkleState {
+                                    phase: 0.0,
+                                    duration,
+                                    pause_duration,
+                                },
+                            );
                         }
                     }
                 }
@@ -248,11 +267,19 @@ pub fn apply_twinkle_effect(
 
             for (i, &ch) in text_chars.iter().enumerate() {
                 if let Some(state) = twinkle_states.get(&i) {
-                    let eased_progress = calculate_three_phase_progress(state.phase, state.pause_duration, &config.easing);
+                    let eased_progress = calculate_three_phase_progress(
+                        state.phase,
+                        state.pause_duration,
+                        &config.easing,
+                    );
                     let twinkle_char = get_twinkle_char(eased_progress, config.star_mode);
                     let color_intensity = eased_progress;
                     let blended_color = blend_colors(base_color, twinkle_color, color_intensity);
-                    execute!(stdout, SetForegroundColor(blended_color), Print(twinkle_char))?;
+                    execute!(
+                        stdout,
+                        SetForegroundColor(blended_color),
+                        Print(twinkle_char)
+                    )?;
                 } else {
                     execute!(stdout, SetForegroundColor(base_color), Print(ch))?;
                 }
@@ -284,7 +311,7 @@ mod tests {
     #[test]
     fn test_twinkle_config_default() {
         let config = TwinkleConfig::default();
-        
+
         assert_eq!(config.base_color, (255, 255, 255));
         assert_eq!(config.twinkle_color, (255, 255, 0));
         assert_eq!(config.speed, 100);
@@ -328,7 +355,7 @@ mod tests {
     #[test]
     fn test_easing_function_twinkle_linear() {
         let easing = EasingFunction::Linear;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.25), 0.25, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
@@ -339,11 +366,11 @@ mod tests {
     #[test]
     fn test_easing_function_twinkle_ease_in() {
         let easing = EasingFunction::EaseIn;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.25, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-in should start slow and accelerate
         assert!(easing.apply(0.1) < 0.1);
         assert!(easing.apply(0.9) > 0.8);
@@ -352,11 +379,11 @@ mod tests {
     #[test]
     fn test_easing_function_twinkle_ease_out() {
         let easing = EasingFunction::EaseOut;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.75, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-out should start fast and decelerate
         assert!(easing.apply(0.1) > 0.1);
         assert!(easing.apply(0.9) < 1.0);
@@ -365,11 +392,11 @@ mod tests {
     #[test]
     fn test_easing_function_twinkle_ease_in_out() {
         let easing = EasingFunction::EaseInOut;
-        
+
         assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
         assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-        
+
         // Ease-in-out should be symmetric around 0.5
         let val_25 = easing.apply(0.25);
         let val_75 = easing.apply(0.75);
@@ -384,18 +411,22 @@ mod tests {
             EasingFunction::EaseOut,
             EasingFunction::EaseInOut,
         ];
-        
+
         for easing in functions {
             // Test edge cases
             assert_eq!(easing.apply(0.0), 0.0);
             assert_eq!(easing.apply(1.0), 1.0);
-            
+
             // Test monotonic increasing property
             let values: Vec<f32> = (0..=10).map(|i| easing.apply(i as f32 / 10.0)).collect();
             for i in 1..values.len() {
-                assert!(values[i] >= values[i-1], 
-                       "Easing function should be monotonic increasing at step {}: {} >= {}", 
-                       i, values[i], values[i-1]);
+                assert!(
+                    values[i] >= values[i - 1],
+                    "Easing function should be monotonic increasing at step {}: {} >= {}",
+                    i,
+                    values[i],
+                    values[i - 1]
+                );
             }
         }
     }
@@ -415,7 +446,7 @@ mod tests {
 
     #[test]
     fn test_twinkling_percentage_valid_range() {
-        // Test percentage values within valid range  
+        // Test percentage values within valid range
         let valid_percentages = [0.0, 0.5, 0.8, 1.0];
         for &percentage in &valid_percentages {
             let config = TwinkleConfig {
@@ -433,7 +464,7 @@ mod tests {
             max_twinkle_count: Some(10),
             ..TwinkleConfig::default()
         };
-        
+
         assert_eq!(config.min_twinkle_count, Some(2));
         assert_eq!(config.max_twinkle_count, Some(10));
     }
