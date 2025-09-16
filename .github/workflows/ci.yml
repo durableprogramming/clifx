@@ -16,6 +16,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
+    - name: Install Zig and cargo-zigbuild
+      uses: mlugg/setup-zig@v1
     - run: cargo test
 
   fmt:
@@ -26,6 +28,8 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: rustfmt
+    - name: Install Zig and cargo-zigbuild
+      uses: mlugg/setup-zig@v1
     - run: cargo fmt --all -- --check
 
   clippy:
@@ -36,4 +40,6 @@ jobs:
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: clippy
+    - name: Install Zig and cargo-zigbuild
+      uses: mlugg/setup-zig@v1
     - run: cargo clippy -- -D warnings
