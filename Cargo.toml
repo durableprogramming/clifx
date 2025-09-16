@@ -1,6 +1,6 @@
 [package]
 name = "clifx"
-version = "0.1.9"
+version = "0.1.9-a"
 edition = "2021"
 authors = ["Durable Programming, LLC"]
 license = "MIT"
