@@ -118,7 +118,7 @@ checksum = "b94f61472cee1439c0b966b47e3aca9ae07e45d070759512cd390ea2bebc6675"
 
 [[package]]
 name = "clifx"
-version = "0.1.9-d"
+version = "0.1.9-e"
 dependencies = [
  "assert_approx_eq",
  "clap",
