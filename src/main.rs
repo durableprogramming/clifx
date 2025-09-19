@@ -3,16 +3,22 @@ use rand::Rng;
 use std::io::{self, BufRead, BufReader};
 
 mod effects;
+mod center;
 use effects::shine::{apply_shine_effect, EasingFunction, ShineConfig, ShineStart};
 use effects::shine2d::{apply_shine2d_effect, Shine2DConfig};
 use effects::twinkle::{
     apply_twinkle_effect, EasingFunction as TwinkleEasingFunction, TwinkleConfig,
 };
+use center::calculate_centering_offsets;
 
 #[derive(Parser)]
 #[command(name = "clifx")]
 #[command(about = "CLI effects for text processing")]
 struct Cli {
+    /// Clear screen and center output in terminal
+    #[arg(long, global = true)]
+    center: bool,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -223,6 +229,23 @@ enum Commands {
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
+    
+    // Read all input first
+    let stdin = io::stdin();
+    let reader = BufReader::new(stdin.lock());
+    let mut input_lines = Vec::new();
+    
+    for line in reader.lines() {
+        input_lines.push(line?);
+    }
+    
+    // Calculate centering offsets if needed
+    let centering_offsets = if cli.center {
+        let offsets = calculate_centering_offsets(&input_lines)?;
+        Some((offsets.top, offsets.left))
+    } else {
+        None
+    };
 
     match cli.command {
         Commands::Shine {
@@ -278,12 +301,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 opacity: opacity.clamp(0.0, 1.0),
             };
 
-            let stdin = io::stdin();
-            let reader = BufReader::new(stdin.lock());
-
-            for line in reader.lines() {
-                let line = line?;
-                apply_shine_effect(&line, &config)?;
+            for line in &input_lines {
+                apply_shine_effect(line, &config, centering_offsets)?;
             }
         }
         Commands::Shine2d {
@@ -347,19 +366,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 terminal_width,
             };
 
-            let stdin = io::stdin();
-            let reader = BufReader::new(stdin.lock());
             let mut input_text = String::new();
-
-            for line in reader.lines() {
-                let line = line?;
-                if !input_text.is_empty() {
+            for (i, line) in input_lines.iter().enumerate() {
+                if i > 0 {
                     input_text.push('\n');
                 }
-                input_text.push_str(&line);
+                input_text.push_str(line);
             }
 
-            apply_shine2d_effect(&input_text, &config)?;
+            apply_shine2d_effect(&input_text, &config, centering_offsets)?;
         }
         Commands::Twinkle {
             base_color,
@@ -398,12 +413,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 star_mode,
             };
 
-            let stdin = io::stdin();
-            let reader = BufReader::new(stdin.lock());
-
-            for line in reader.lines() {
-                let line = line?;
-                apply_twinkle_effect(&line, &config)?;
+            for line in &input_lines {
+                apply_twinkle_effect(line, &config, centering_offsets)?;
             }
         }
     }

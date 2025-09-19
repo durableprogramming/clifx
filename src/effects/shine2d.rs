@@ -156,6 +156,7 @@ fn calculate_2d_shine_intensity(
 pub fn apply_shine2d_effect(
     text: &str,
     config: &Shine2DConfig,
+    centering_offsets: Option<(u16, u16)>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut stdout = io::stdout();
 
@@ -201,7 +202,14 @@ pub fn apply_shine2d_effect(
     let diagonal_length = ((max_width * max_width + grid_height * grid_height) as f32).sqrt();
     let shine_range = diagonal_length + (2 * config.padding) as f32;
 
-    execute!(stdout, cursor::SavePosition, cursor::Hide)?;
+    if centering_offsets.is_some() {
+        execute!(stdout, 
+            crossterm::terminal::Clear(crossterm::terminal::ClearType::All),
+            cursor::Hide
+        )?;
+    } else {
+        execute!(stdout, cursor::SavePosition, cursor::Hide)?;
+    }
 
     for cycle in 0..cycles_to_run {
         if let Some(pre_delay) = config.cycle_pre_delay {
@@ -249,10 +257,18 @@ pub fn apply_shine2d_effect(
                 }
             }
 
-            execute!(stdout, cursor::RestorePosition)?;
+            if let Some((top_offset, left_offset)) = centering_offsets {
+                execute!(stdout, cursor::MoveTo(left_offset, top_offset))?;
+            } else {
+                execute!(stdout, cursor::RestorePosition)?;
+            }
 
             for (y, line) in grid.iter().enumerate() {
-                execute!(stdout, cursor::MoveToColumn(0))?;
+                if let Some((_, left_offset)) = centering_offsets {
+                    execute!(stdout, cursor::MoveToColumn(left_offset))?;
+                } else {
+                    execute!(stdout, cursor::MoveToColumn(0))?;
+                }
 
                 for (x, &ch) in line.iter().enumerate() {
                     let pos = Position2D { x, y };

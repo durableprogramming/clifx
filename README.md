@@ -13,15 +13,15 @@ A visual command line effects and animation library for creating engaging termin
 ### From .deb package (Ubuntu/Debian)
 
 ```bash
-wget https://github.com/durableprogramming/clifx/releases/latest/download/clifx-v0.1.0-amd64.deb
-sudo dpkg -i clifx-v0.1.0-amd64.deb
+wget https://github.com/durableprogramming/clifx/releases/latest/download/clifx-v0.1.9-h-amd64.deb
+sudo dpkg -i clifx-v0.1.9-h-amd64.deb
 ```
 
 ### From tarball
 
 ```bash
-wget https://github.com/durableprogramming/clifx/releases/latest/download/clifx-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
-tar -xzf clifx-v0.1.0-x86_64-unknown-linux-gnu.tar.gz
+wget https://github.com/durableprogramming/clifx/releases/latest/download/clifx-v0.1.9-h-x86_64-unknown-linux-gnu.tar.gz
+tar -xzf clifx-v0.1.9-h-x86_64-unknown-linux-gnu.tar.gz
 sudo mv clifx /usr/local/bin/
 ```
 

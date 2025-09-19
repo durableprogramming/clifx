@@ -60,6 +60,7 @@ impl EasingFunction {
 pub fn apply_shine_effect(
     text: &str,
     config: &ShineConfig,
+    centering_offsets: Option<(u16, u16)>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut stdout = io::stdout();
     let text_chars: Vec<char> = text.chars().collect();
@@ -90,11 +91,19 @@ pub fn apply_shine_effect(
         b: config.shine_color.2,
     };
 
-    execute!(
-        stdout,
-        terminal::Clear(ClearType::CurrentLine),
-        cursor::Hide
-    )?;
+    if centering_offsets.is_some() {
+        execute!(
+            stdout,
+            terminal::Clear(ClearType::All),
+            cursor::Hide
+        )?;
+    } else {
+        execute!(
+            stdout,
+            terminal::Clear(ClearType::CurrentLine),
+            cursor::Hide
+        )?;
+    }
 
     for cycle in 0..cycles_to_run {
         // Apply pre-cycle delay
@@ -150,7 +159,11 @@ pub fn apply_shine_effect(
                 }
             }
 
-            execute!(stdout, cursor::MoveToColumn(0))?;
+            if let Some((top_offset, left_offset)) = centering_offsets {
+                execute!(stdout, cursor::MoveTo(left_offset, top_offset))?;
+            } else {
+                execute!(stdout, cursor::MoveToColumn(0))?;
+            }
 
             for (i, &ch) in text_chars.iter().enumerate() {
                 let distance_from_shine = (i as isize - shine_position).abs() as f32;
