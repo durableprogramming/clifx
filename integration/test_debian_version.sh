@@ -81,7 +81,7 @@ get_version() {
 build_deb_if_needed() {
     local version=$(get_version)
     local arch=$(get_arch)
-    local target="x86_64-unknown-linux-gnu"
+    local target="x86_64-unknown-linux-musl"
     
     # Find existing deb file with version pattern
     local existing_deb=$(find "$PROJECT_ROOT/target/*/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)
@@ -103,9 +103,7 @@ build_deb_if_needed() {
     
 
     # Build the deb package
-    #
-
-    RUSTFLAGS="-C target-feature=+crt-static" cargo deb --no-strip --target $target   >&2
+    cargo deb --no-strip --target $target   >&2
     
     # Find the newly created deb file
     local deb_path=$(find "$PROJECT_ROOT/target/${target}/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)

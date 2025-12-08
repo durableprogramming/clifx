@@ -7,6 +7,8 @@ use std::io::{self, Write};
 use std::thread;
 use std::time::Duration;
 
+use super::common::{blend_colors, EasingFunction};
+
 pub struct Shine2DConfig {
     pub base_color: (u8, u8, u8),
     pub speed: u64,
@@ -57,31 +59,6 @@ impl Default for Shine2DConfig {
 pub enum ShineStart {
     Beginning,
     End,
-}
-
-#[derive(Debug, Clone)]
-pub enum EasingFunction {
-    Linear,
-    EaseIn,
-    EaseOut,
-    EaseInOut,
-}
-
-impl EasingFunction {
-    fn apply(&self, t: f32) -> f32 {
-        match self {
-            EasingFunction::Linear => t,
-            EasingFunction::EaseIn => t * t,
-            EasingFunction::EaseOut => 1.0 - (1.0 - t) * (1.0 - t),
-            EasingFunction::EaseInOut => {
-                if t < 0.5 {
-                    2.0 * t * t
-                } else {
-                    1.0 - (-2.0 * t + 2.0).powi(2) / 2.0
-                }
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -315,30 +292,6 @@ pub fn apply_shine2d_effect(
     Ok(())
 }
 
-fn blend_colors(base: Color, shine: Color, intensity: f32) -> Color {
-    let intensity = intensity.clamp(0.0, 1.0);
-
-    let (base_r, base_g, base_b) = match base {
-        Color::Rgb { r, g, b } => (r, g, b),
-        _ => (255, 255, 255),
-    };
-
-    let (shine_r, shine_g, shine_b) = match shine {
-        Color::Rgb { r, g, b } => (r, g, b),
-        _ => (255, 255, 255),
-    };
-
-    let blended_r = (base_r as f32 * (1.0 - intensity) + shine_r as f32 * intensity) as u8;
-    let blended_g = (base_g as f32 * (1.0 - intensity) + shine_g as f32 * intensity) as u8;
-    let blended_b = (base_b as f32 * (1.0 - intensity) + shine_b as f32 * intensity) as u8;
-
-    Color::Rgb {
-        r: blended_r,
-        g: blended_g,
-        b: blended_b,
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -486,30 +439,6 @@ mod tests {
         // At the exact line, should be full intensity
         let intensity = calculate_2d_shine_intensity(&pos, shine_line, angle, width, false);
         assert!(intensity > 0.0);
-    }
-
-    #[test]
-    fn test_easing_function_shine2d_linear() {
-        let easing = EasingFunction::Linear;
-
-        assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.25), 0.25, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.75), 0.75, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-    }
-
-    #[test]
-    fn test_easing_function_shine2d_ease_in() {
-        let easing = EasingFunction::EaseIn;
-
-        assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.5), 0.25, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-
-        // Ease-in should start slow and accelerate
-        assert!(easing.apply(0.1) < 0.1);
-        assert!(easing.apply(0.9) > 0.8);
     }
 
     #[test]

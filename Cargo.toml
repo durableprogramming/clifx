@@ -10,7 +10,6 @@ homepage = "https://github.com/durableprogramming/clifx"
 repository = "https://github.com/durableprogramming/clifx"
 keywords = ["cli", "effects", "animation", "terminal", "visual"]
 categories = ["command-line-utilities", "development-tools"]
-linker = "zig cc"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }

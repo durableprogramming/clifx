@@ -4,11 +4,11 @@ use std::io::{self, BufRead, BufReader};
 
 mod effects;
 mod center;
-use effects::shine::{apply_shine_effect, EasingFunction, ShineConfig, ShineStart};
-use effects::shine2d::{apply_shine2d_effect, Shine2DConfig};
-use effects::twinkle::{
-    apply_twinkle_effect, EasingFunction as TwinkleEasingFunction, TwinkleConfig,
-};
+
+use effects::common::EasingFunction;
+use effects::shine::{apply_shine_effect, ShineConfig, ShineStart};
+use effects::shine2d::{apply_shine2d_effect, Shine2DConfig, ShineStart as Shine2DShineStart};
+use effects::twinkle::{apply_twinkle_effect, TwinkleConfig};
 use center::calculate_centering_offsets;
 
 #[derive(Parser)]
@@ -270,12 +270,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let rgb = parse_rgb_color(&color_str)?;
             let shine_rgb = parse_rgb_color(&shine_color)?;
 
-            let easing_func = match easing {
-                EasingType::Linear => EasingFunction::Linear,
-                EasingType::EaseIn => EasingFunction::EaseIn,
-                EasingType::EaseOut => EasingFunction::EaseOut,
-                EasingType::EaseInOut => EasingFunction::EaseInOut,
-            };
+            let easing_func = convert_easing_type(&easing);
 
             let start_direction = match start {
                 StartType::Beginning => ShineStart::Beginning,
@@ -325,20 +320,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             angle,
             terminal_width,
         } => {
-            use effects::shine2d::{
-                EasingFunction as Shine2DEasingFunction, ShineStart as Shine2DShineStart,
-            };
-
             let color_str = color.unwrap_or_else(generate_random_saturated_color);
             let rgb = parse_rgb_color(&color_str)?;
             let shine_rgb = parse_rgb_color(&shine_color)?;
 
-            let easing_func = match easing {
-                EasingType::Linear => Shine2DEasingFunction::Linear,
-                EasingType::EaseIn => Shine2DEasingFunction::EaseIn,
-                EasingType::EaseOut => Shine2DEasingFunction::EaseOut,
-                EasingType::EaseInOut => Shine2DEasingFunction::EaseInOut,
-            };
+            let easing_func = convert_easing_type(&easing);
 
             let start_direction = match start {
                 StartType::Beginning => Shine2DShineStart::Beginning,
@@ -392,12 +378,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let base_rgb = parse_rgb_color(&base_color)?;
             let twinkle_rgb = parse_rgb_color(&twinkle_color)?;
 
-            let easing_func = match easing {
-                EasingType::Linear => TwinkleEasingFunction::Linear,
-                EasingType::EaseIn => TwinkleEasingFunction::EaseIn,
-                EasingType::EaseOut => TwinkleEasingFunction::EaseOut,
-                EasingType::EaseInOut => TwinkleEasingFunction::EaseInOut,
-            };
+            let easing_func = convert_easing_type(&easing);
 
             let config = TwinkleConfig {
                 base_color: base_rgb,
@@ -420,6 +401,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+fn convert_easing_type(easing: &EasingType) -> EasingFunction {
+    match easing {
+        EasingType::Linear => EasingFunction::Linear,
+        EasingType::EaseIn => EasingFunction::EaseIn,
+        EasingType::EaseOut => EasingFunction::EaseOut,
+        EasingType::EaseInOut => EasingFunction::EaseInOut,
+    }
 }
 
 fn generate_random_saturated_color() -> String {

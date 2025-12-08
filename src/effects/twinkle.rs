@@ -9,6 +9,8 @@ use std::io::{self, Write};
 use std::thread;
 use std::time::Duration;
 
+use super::common::{blend_colors, EasingFunction};
+
 pub struct TwinkleConfig {
     pub base_color: (u8, u8, u8),
     pub twinkle_color: (u8, u8, u8),
@@ -37,31 +39,6 @@ impl Default for TwinkleConfig {
             max_twinkle_count: None,
             twinkling_percentage: 0.8,
             star_mode: false,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum EasingFunction {
-    Linear,
-    EaseIn,
-    EaseOut,
-    EaseInOut,
-}
-
-impl EasingFunction {
-    fn apply(&self, t: f32) -> f32 {
-        match self {
-            EasingFunction::Linear => t,
-            EasingFunction::EaseIn => t * t,
-            EasingFunction::EaseOut => 1.0 - (1.0 - t) * (1.0 - t),
-            EasingFunction::EaseInOut => {
-                if t < 0.5 {
-                    2.0 * t * t
-                } else {
-                    1.0 - (-2.0 * t + 2.0).powi(2) / 2.0
-                }
-            }
         }
     }
 }
@@ -115,30 +92,6 @@ fn get_twinkle_char(progress: f32, star_mode: bool) -> char {
     };
     let index = (eased_progress * (chars.len() - 1) as f32).round() as usize;
     chars[index.min(chars.len() - 1)]
-}
-
-fn blend_colors(base: Color, twinkle: Color, intensity: f32) -> Color {
-    let intensity = intensity.clamp(0.0, 1.0);
-
-    let (base_r, base_g, base_b) = match base {
-        Color::Rgb { r, g, b } => (r, g, b),
-        _ => (255, 255, 255),
-    };
-
-    let (twinkle_r, twinkle_g, twinkle_b) = match twinkle {
-        Color::Rgb { r, g, b } => (r, g, b),
-        _ => (255, 255, 255),
-    };
-
-    let blended_r = (base_r as f32 * (1.0 - intensity) + twinkle_r as f32 * intensity) as u8;
-    let blended_g = (base_g as f32 * (1.0 - intensity) + twinkle_g as f32 * intensity) as u8;
-    let blended_b = (base_b as f32 * (1.0 - intensity) + twinkle_b as f32 * intensity) as u8;
-
-    Color::Rgb {
-        r: blended_r,
-        g: blended_g,
-        b: blended_b,
-    }
 }
 
 pub fn apply_twinkle_effect(
@@ -317,9 +270,6 @@ pub fn apply_twinkle_effect(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
-
-    const TEST_TOLERANCE: f32 = 0.001;
 
     #[test]
     fn test_twinkle_config_default() {
@@ -363,85 +313,6 @@ mod tests {
         assert_eq!(config.max_twinkle_count, Some(5));
         assert_eq!(config.twinkling_percentage, 0.9);
         assert!(config.star_mode);
-    }
-
-    #[test]
-    fn test_easing_function_twinkle_linear() {
-        let easing = EasingFunction::Linear;
-
-        assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.25), 0.25, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.75), 0.75, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-    }
-
-    #[test]
-    fn test_easing_function_twinkle_ease_in() {
-        let easing = EasingFunction::EaseIn;
-
-        assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.5), 0.25, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-
-        // Ease-in should start slow and accelerate
-        assert!(easing.apply(0.1) < 0.1);
-        assert!(easing.apply(0.9) > 0.8);
-    }
-
-    #[test]
-    fn test_easing_function_twinkle_ease_out() {
-        let easing = EasingFunction::EaseOut;
-
-        assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.5), 0.75, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-
-        // Ease-out should start fast and decelerate
-        assert!(easing.apply(0.1) > 0.1);
-        assert!(easing.apply(0.9) < 1.0);
-    }
-
-    #[test]
-    fn test_easing_function_twinkle_ease_in_out() {
-        let easing = EasingFunction::EaseInOut;
-
-        assert_approx_eq!(easing.apply(0.0), 0.0, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(0.5), 0.5, TEST_TOLERANCE);
-        assert_approx_eq!(easing.apply(1.0), 1.0, TEST_TOLERANCE);
-
-        // Ease-in-out should be symmetric around 0.5
-        let val_25 = easing.apply(0.25);
-        let val_75 = easing.apply(0.75);
-        assert_approx_eq!(val_25, 1.0 - val_75, 0.01);
-    }
-
-    #[test]
-    fn test_easing_functions_monotonic() {
-        let functions = vec![
-            EasingFunction::Linear,
-            EasingFunction::EaseIn,
-            EasingFunction::EaseOut,
-            EasingFunction::EaseInOut,
-        ];
-
-        for easing in functions {
-            // Test edge cases
-            assert_eq!(easing.apply(0.0), 0.0);
-            assert_eq!(easing.apply(1.0), 1.0);
-
-            // Test monotonic increasing property
-            let values: Vec<f32> = (0..=10).map(|i| easing.apply(i as f32 / 10.0)).collect();
-            for i in 1..values.len() {
-                assert!(
-                    values[i] >= values[i - 1],
-                    "Easing function should be monotonic increasing at step {}: {} >= {}",
-                    i,
-                    values[i],
-                    values[i - 1]
-                );
-            }
-        }
     }
 
     #[test]

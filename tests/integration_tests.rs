@@ -330,3 +330,122 @@ fn test_cli_empty_input() {
         );
     }
 }
+
+#[test]
+fn test_cli_center_flag() {
+    let mut child = Command::new("cargo")
+        .args([
+            "run",
+            "--",
+            "--center",
+            "shine",
+            "--color",
+            "255,0,0",
+            "--speed",
+            "50",
+            "--cycles",
+            "1",
+            "--duration",
+            "100",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn CLI command");
+
+    if let Some(stdin) = child.stdin.as_mut() {
+        stdin
+            .write_all(TEST_TEXT.as_bytes())
+            .expect("Failed to write to stdin");
+    }
+
+    let output = child.wait_with_output().expect("Failed to read stdout");
+
+    assert!(
+        output.status.success(),
+        "Command with --center flag failed, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn test_cli_center_flag_with_shine2d() {
+    let mut child = Command::new("cargo")
+        .args([
+            "run",
+            "--",
+            "--center",
+            "shine2d",
+            "--color",
+            "0,255,0",
+            "--angle",
+            "45",
+            "--speed",
+            "50",
+            "--cycles",
+            "1",
+            "--duration",
+            "100",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn CLI command");
+
+    if let Some(stdin) = child.stdin.as_mut() {
+        stdin
+            .write_all("Test\nMultiline\nText".as_bytes())
+            .expect("Failed to write to stdin");
+    }
+
+    let output = child.wait_with_output().expect("Failed to read stdout");
+
+    assert!(
+        output.status.success(),
+        "Command with --center flag on shine2d failed, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn test_cli_center_flag_with_twinkle() {
+    let mut child = Command::new("cargo")
+        .args([
+            "run",
+            "--",
+            "--center",
+            "twinkle",
+            "--base-color",
+            "255,255,255",
+            "--twinkle-color",
+            "255,255,0",
+            "--speed",
+            "50",
+            "--cycles",
+            "1",
+            "--duration",
+            "100",
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to spawn CLI command");
+
+    if let Some(stdin) = child.stdin.as_mut() {
+        stdin
+            .write_all("Test... with... dots...".as_bytes())
+            .expect("Failed to write to stdin");
+    }
+
+    let output = child.wait_with_output().expect("Failed to read stdout");
+
+    assert!(
+        output.status.success(),
+        "Command with --center flag on twinkle failed, stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+

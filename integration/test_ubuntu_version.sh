@@ -103,9 +103,7 @@ build_deb_if_needed() {
     
 
     # Build the deb package
-    #
-
-    RUSTFLAGS="-C target-feature=-crt-static" cargo deb --no-strip --target $target   >&2
+    cargo deb --no-strip --target $target   >&2
     
     # Find the newly created deb file
     local deb_path=$(find "$PROJECT_ROOT/target/${target}/debian" -name "clifx_${version}*_${arch}.deb" 2>/dev/null | head -1)
